@@ -1,5 +1,648 @@
-<html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#123f78">
+  <title>اختبار المفردات الإنجليزية</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #123f78;
+      --navy-dark: #0c2e5a;
+      --gold: #e7ae22;
+      --ink: #26354a;
+      --muted: #718096;
+      --paper: #fffdf8;
+      --line: #e4e8ef;
+      --green: #23835b;
+      --red: #c94b55;
+      --shadow: 0 16px 42px rgba(20, 47, 82, .10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% 5%, rgba(231, 174, 34, .10), transparent 25rem),
+        linear-gradient(145deg, #f3f6fb, #fffdf8 65%);
+      color: var(--ink);
+      font-family: Tahoma, Arial, sans-serif;
+    }
+
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .page {
+      width: min(1050px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      text-align: right;
+    }
+
+    .brand img {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 8px 22px rgba(18, 63, 120, .12);
+    }
+
+    .brand h1 {
+      margin: 0 0 5px;
+      color: var(--navy);
+      font-size: clamp(1.35rem, 3vw, 2rem);
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .quiz-shell {
+      overflow: hidden;
+      border: 1px solid rgba(18, 63, 120, .10);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: var(--shadow);
+    }
+
+    .quiz-top {
+      padding: 22px clamp(18px, 4vw, 34px) 18px;
+      color: white;
+      background: linear-gradient(115deg, var(--navy-dark), var(--navy));
+    }
+
+    .top-row, .question-meta, .navigation, .jump-form {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .top-row { flex-wrap: wrap; }
+    .quiz-name { font-weight: 700; font-size: 1.08rem; }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .stat {
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, .24);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .10);
+      font-size: .9rem;
+    }
+
+    .progress-track {
+      height: 8px;
+      margin-top: 18px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .20);
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--gold);
+      transition: width .25s ease;
+    }
+
+    .quiz-content { padding: clamp(18px, 4vw, 34px); }
+
+    .question-meta {
+      justify-content: flex-start;
+      margin-bottom: 17px;
+    }
+
+    .question-number {
+      padding: 7px 12px;
+      border-radius: 999px;
+      color: var(--navy);
+      background: #eaf1fa;
+      font-weight: 700;
+    }
+
+    .question-type { color: var(--muted); font-size: .92rem; }
+
+    .question-text {
+      min-height: 74px;
+      margin: 0 0 22px;
+      color: #202f43;
+      font-size: clamp(1.15rem, 3vw, 1.55rem);
+      line-height: 1.8;
+      white-space: pre-line;
+    }
+
+    .question-text[dir="ltr"] { text-align: left; }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .answer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 60px;
+      padding: 13px 15px;
+      border: 1.5px solid var(--line);
+      border-radius: 13px;
+      color: var(--ink);
+      background: white;
+      text-align: right;
+      transition: border-color .16s ease, background .16s ease, transform .16s ease;
+    }
+
+    .answer:not(:disabled):hover {
+      transform: translateY(-2px);
+      border-color: #8da9cc;
+      background: #f7faff;
+    }
+
+    .answer:focus-visible, button:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(231, 174, 34, .6);
+      outline-offset: 2px;
+    }
+
+    .answer:disabled { cursor: default; }
+
+    .answer-letter {
+      display: grid;
+      flex: 0 0 32px;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border-radius: 9px;
+      color: var(--navy);
+      background: #edf2f8;
+      font-weight: 700;
+    }
+
+    .answer.is-correct {
+      border-color: var(--green);
+      background: #eef9f3;
+    }
+
+    .answer.is-correct .answer-letter { color: white; background: var(--green); }
+    .answer.is-wrong { border-color: var(--red); background: #fff1f1; }
+    .answer.is-wrong .answer-letter { color: white; background: var(--red); }
+    .answer.is-eliminated { display: none; }
+
+    .feedback {
+      min-height: 28px;
+      margin: 15px 0 0;
+      font-weight: 700;
+    }
+
+    .feedback.correct { color: var(--green); }
+    .feedback.incorrect { color: var(--red); }
+
+    .lifelines {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 21px;
+      border-top: 1px solid var(--line);
+    }
+
+    .lifeline {
+      min-height: 48px;
+      padding: 10px 12px;
+      border: 1px solid #d5deea;
+      border-radius: 11px;
+      color: var(--navy);
+      background: #f8fafd;
+      font-weight: 700;
+      transition: color .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .lifeline:not(:disabled):hover { border-color: var(--navy); }
+
+    .lifeline.used {
+      border-color: var(--gold);
+      color: #674700;
+      background: #fff3cc;
+    }
+
+    .lifeline:disabled { cursor: not-allowed; opacity: .62; }
+
+    .help-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: .85rem;
+      line-height: 1.7;
+    }
+
+    .navigation {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .nav-button, .jump-button {
+      min-height: 44px;
+      padding: 10px 17px;
+      border: 0;
+      border-radius: 10px;
+      color: white;
+      background: var(--navy);
+      font-weight: 700;
+    }
+
+    .nav-button.secondary {
+      border: 1px solid #d5deea;
+      color: var(--navy);
+      background: white;
+    }
+
+    .nav-button:disabled { cursor: not-allowed; opacity: .45; }
+
+    .jump-form { justify-content: center; }
+
+    .jump-form label { color: var(--muted); font-size: .9rem; }
+
+    .jump-form select {
+      min-height: 42px;
+      max-width: 180px;
+      padding: 8px 12px;
+      border: 1px solid #d5deea;
+      border-radius: 9px;
+      color: var(--ink);
+      background: white;
+    }
+
+    .jump-button { min-height: 42px; padding: 9px 14px; }
+
+    .result {
+      padding: 30px 20px;
+      border: 1px solid #dce8f4;
+      border-radius: 15px;
+      background: #f6f9fd;
+      text-align: center;
+    }
+
+    .result h2 { margin: 0 0 10px; color: var(--navy); }
+    .result p { margin: 0 0 18px; color: var(--muted); }
+    .result strong { color: var(--navy); font-size: 1.35rem; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 700px) {
+      .lifelines { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .answers { grid-template-columns: 1fr; }
+      .navigation { flex-wrap: wrap; }
+      .jump-form { order: 3; width: 100%; }
+    }
+
+    @media (max-width: 440px) {
+      .page { width: min(100% - 20px, 1050px); padding-top: 17px; }
+      .brand img { width: 60px; height: 60px; }
+      .brand { gap: 10px; }
+      .quiz-top { padding: 17px; }
+      .stats { gap: 6px; }
+      .stat { padding: 7px 9px; font-size: .8rem; }
+      .lifeline { padding: 9px 7px; font-size: .87rem; }
+      .jump-form { flex-wrap: wrap; }
+    }
+  </style>
+</head>
 <body>
-<h1>مرحبا</h1>
+  <main class="page">
+    <header class="brand">
+      <img src="شعار.png" alt="شعار المنصة التعليمية">
+      <div>
+        <h1>اختبار المفردات الإنجليزية</h1>
+        <p>اختبر معلوماتك وانتقل بين الأسئلة بسهولة</p>
+      </div>
+    </header>
+
+    <section class="quiz-shell" aria-label="اختبار المفردات">
+      <div class="quiz-top">
+        <div class="top-row">
+          <div class="quiz-name">اختبار اللغة الإنجليزية</div>
+          <div class="stats" aria-live="polite">
+            <span class="stat" id="progressText">السؤال 1 من 100</span>
+            <span class="stat" id="scoreText">النتيجة: 0</span>
+            <span class="stat" id="answeredText">تمت الإجابة: 0</span>
+          </div>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="تقدم الاختبار" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="quiz-content">
+        <div id="questionPanel">
+          <div class="question-meta">
+            <span class="question-number" id="questionNumber">السؤال 1</span>
+            <span class="question-type" id="questionType"></span>
+          </div>
+          <h2 class="question-text" id="questionText"></h2>
+          <div class="answers" id="answers" role="group" aria-label="خيارات الإجابة"></div>
+          <p class="feedback" id="feedback" aria-live="polite"></p>
+
+          <div class="lifelines" aria-label="وسائل المساعدة">
+            <button class="lifeline" type="button" data-lifeline="fifty">حذف إجابتين</button>
+            <button class="lifeline" type="button" data-lifeline="friend">استعانة بصديق</button>
+            <button class="lifeline" type="button" data-lifeline="audience">مساعدة الجمهور</button>
+            <button class="lifeline" type="button" data-lifeline="change">تغيير سؤال</button>
+          </div>
+          <p class="help-note">وسائل الصديق والجمهور وتغيير السؤال يتغير لونها عند الاستخدام فقط. حذف إجابتين يخفي خيارين خاطئين في سؤال الاختيار من متعدد.</p>
+        </div>
+
+        <div class="navigation">
+          <button class="nav-button secondary" id="previousButton" type="button">السابق</button>
+          <form class="jump-form" id="jumpForm">
+            <label for="jumpSelect">الانتقال إلى السؤال</label>
+            <select id="jumpSelect" aria-label="اختر رقم السؤال"></select>
+            <button class="jump-button" type="submit">انتقال</button>
+          </form>
+          <button class="nav-button" id="nextButton" type="button">التالي</button>
+        </div>
+
+        <section class="result" id="resultPanel" aria-live="polite" hidden>
+          <h2>أحسنت! أكملت الاختبار</h2>
+          <p>يمكنك الانتقال بين الأسئلة لمراجعة إجاباتك.</p>
+          <strong id="finalScore"></strong>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      { type: "tf", prompt: "The English alphabet has 26 letters.\nالأبجدية الإنجليزية تتكوّن من 26 حرفًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Apple تعني تفاحة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Aeroplane تعني سيارة.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Airport تعني مطارًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Ambulance تعني سيارة إسعاف.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Artist تعني طبيبًا.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Ant تعني نملة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Alligator تعني تمساحًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Alarm clock تعني ساعة منبّه.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Asleep تعني مستيقظ.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Armchair تعني كرسيًّا ذا ذراعين.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Astronaut تعني رائد فضاء.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Bird تعني نحلة.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Bee تعني نحلة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Butterfly تعني فراشة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Bear تعني دبًّا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Beaver تعني أسدًا.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Blackberry تعني توتًا أسود.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Broccoli تعني موزًا.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Baseball تعني لعبة البيسبول.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Basketball تعني كرة السلة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Ball تعني كرة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Body تعني الجسم.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Head تعني اليد.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Shoulder تعني الكتف.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Finger تعني إصبع اليد.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Knee تعني الركبة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Foot تعني الرأس.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Boat تعني قاربًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Beach تعني الشاطئ.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Bottle تعني زجاجة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Bathroom تعني غرفة النوم.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Bedroom تعني غرفة النوم.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Bed تعني سريرًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Book تعني كتابًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Bus تعني حافلة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Banana تعني تفاحة.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Bread تعني خبزًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Breakfast تعني وجبة الإفطار.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Bicycle تعني دراجة هوائية.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Bank تعني مخبزًا.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Bakery تعني مخبزًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Cat تعني قطة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Clown تعني مهرّجًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Circus تعني سيركًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Computer تعني حاسوبًا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Camera تعني كاميرا.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Chair تعني طاولة.", options: ["صح", "خطأ"], answer: 1 },
+      { type: "tf", prompt: "كلمة Carrot تعني جزرة.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "tf", prompt: "كلمة Cinema تعني سينما.", options: ["صح", "خطأ"], answer: 0 },
+      { type: "mc", prompt: "What does Apple mean? ما معنى Apple؟", options: ["تفاحة", "موزة", "جزرة", "كعكة"], answer: 0 },
+      { type: "mc", prompt: "Which word means مطار؟", options: ["Apron", "Airport", "Artist", "Apple"], answer: 1 },
+      { type: "mc", prompt: "What does Ambulance mean?", options: ["حافلة", "سيارة", "سيارة إسعاف", "دراجة"], answer: 2 },
+      { type: "mc", prompt: "What does Ant mean?", options: ["نحلة", "فراشة", "طائر", "نملة"], answer: 3 },
+      { type: "mc", prompt: "Which word means رائد فضاء؟", options: ["Astronaut", "Actor", "Artist", "Audience"], answer: 0 },
+      { type: "mc", prompt: "What does Alarm clock mean?", options: ["كرسي", "ساعة منبّه", "سرير", "كتاب"], answer: 1 },
+      { type: "mc", prompt: "Which word means سهم؟", options: ["Anchor", "Armchair", "Arrow", "Alphabet"], answer: 2 },
+      { type: "mc", prompt: "What does Bird mean?", options: ["نحلة", "دب", "قطة", "طائر"], answer: 3 },
+      { type: "mc", prompt: "Which word means فراشة؟", options: ["Butterfly", "Beaver", "Badger", "Bear"], answer: 0 },
+      { type: "mc", prompt: "What does Bear mean?", options: ["بقرة", "دب", "أرنب", "نملة"], answer: 1 },
+      { type: "mc", prompt: "What does Bee mean?", options: ["طائر", "فراشة", "نحلة", "سمكة"], answer: 2 },
+      { type: "mc", prompt: "Which word means موز؟", options: ["Bread", "Burger", "Biscuit", "Banana"], answer: 3 },
+      { type: "mc", prompt: "What does Ball mean?", options: ["كرة", "كتاب", "كرسي", "قارب"], answer: 0 },
+      { type: "mc", prompt: "Which word means كرة السلة؟", options: ["Baseball", "Basketball", "Badminton", "Bowling"], answer: 1 },
+      { type: "mc", prompt: "What does Body mean?", options: ["الرأس", "اليد", "الجسم", "القدم"], answer: 2 },
+      { type: "mc", prompt: "Which word means رأس؟", options: ["Hand", "Foot", "Shoulder", "Head"], answer: 3 },
+      { type: "mc", prompt: "What does Finger mean?", options: ["إصبع", "ركبة", "كتف", "قدم"], answer: 0 },
+      { type: "mc", prompt: "Which word means ركبة؟", options: ["Ankle", "Knee", "Elbow", "Chest"], answer: 1 },
+      { type: "mc", prompt: "What does Beach mean?", options: ["غرفة", "حديقة", "شاطئ", "مدرسة"], answer: 2 },
+      { type: "mc", prompt: "Which word means قارب؟", options: ["Bottle", "Backpack", "Bicycle", "Boat"], answer: 3 },
+      { type: "mc", prompt: "What does Bottle mean?", options: ["زجاجة", "سرير", "كتاب", "صندوق"], answer: 0 },
+      { type: "mc", prompt: "Which word means حمّام؟", options: ["Bedroom", "Bathroom", "Bookshop", "Balcony"], answer: 1 },
+      { type: "mc", prompt: "What does Bed mean?", options: ["كرسي", "طاولة", "سرير", "نافذة"], answer: 2 },
+      { type: "mc", prompt: "Which word means كتاب؟", options: ["Bookcase", "Bookshop", "Box", "Book"], answer: 3 },
+      { type: "mc", prompt: "What does Bus mean?", options: ["حافلة", "دراجة", "قارب", "سيارة"], answer: 0 },
+      { type: "mc", prompt: "Which word means خبز؟", options: ["Butter", "Bread", "Banana", "Burger"], answer: 1 },
+      { type: "mc", prompt: "What does Breakfast mean?", options: ["العشاء", "الغداء", "الإفطار", "الحلوى"], answer: 2 },
+      { type: "mc", prompt: "Which word means دراجة هوائية؟", options: ["Boat", "Bus", "Car", "Bicycle"], answer: 3 },
+      { type: "mc", prompt: "What does Bank mean?", options: ["بنك", "مخبز", "مكتبة", "سينما"], answer: 0 },
+      { type: "mc", prompt: "Which word means مخبز؟", options: ["Bank", "Bakery", "Bookshop", "Bus station"], answer: 1 },
+      { type: "mc", prompt: "What does Cat mean?", options: ["كلب", "بقرة", "قطة", "جمل"], answer: 2 },
+      { type: "mc", prompt: "Which word means مهرّج؟", options: ["Customer", "Cook", "Chef", "Clown"], answer: 3 },
+      { type: "mc", prompt: "What does Circus mean?", options: ["سيرك", "قلعة", "مدينة", "مقهى"], answer: 0 },
+      { type: "mc", prompt: "Which word means حاسوب؟", options: ["Camera", "Computer", "Calendar", "Compass"], answer: 1 },
+      { type: "mc", prompt: "What does Camera mean?", options: ["ساعة", "تقويم", "كاميرا", "لوحة مفاتيح"], answer: 2 },
+      { type: "mc", prompt: "Which word means كرسي؟", options: ["Cup", "Carpet", "Curtain", "Chair"], answer: 3 },
+      { type: "mc", prompt: "What does Carrot mean?", options: ["جزرة", "خيار", "ملفوف", "ذرة"], answer: 0 },
+      { type: "mc", prompt: "Which word means سينما؟", options: ["Circus", "Cinema", "Café", "Castle"], answer: 1 },
+      { type: "mc", prompt: "What does Cake mean?", options: ["خبز", "جبن", "كعكة", "دجاج"], answer: 2 },
+      { type: "mc", prompt: "Which word means قهوة؟", options: ["Cheese", "Chicken", "Chocolate", "Coffee"], answer: 3 },
+      { type: "mc", prompt: "What does Clock mean?", options: ["ساعة", "كرسي", "كتاب", "حقيبة"], answer: 0 },
+      { type: "mc", prompt: "Which word means حاسوب محمول أو شاشة عرض؟", options: ["Mouse", "Screen", "Keyboard", "Calendar"], answer: 1 },
+      { type: "mc", prompt: "What does Keyboard mean?", options: ["فأرة", "شاشة", "لوحة مفاتيح", "ساعة"], answer: 2 },
+      { type: "mc", prompt: "Which word means فأرة الحاسوب؟", options: ["Chair", "Clock", "Camera", "Mouse"], answer: 3 },
+      { type: "mc", prompt: "What does Colour mean?", options: ["لون", "عدد", "شكل", "صوت"], answer: 0 },
+      { type: "mc", prompt: "Which word means أحمر؟", options: ["Blue", "Red", "Green", "Yellow"], answer: 1 },
+      { type: "mc", prompt: "What does Green mean?", options: ["أبيض", "أسود", "أخضر", "وردي"], answer: 2 },
+      { type: "mc", prompt: "Which word means جزيرة؟", options: ["Cliff", "Cave", "Cloud", "لا يوجد خيار صحيح"], answer: 3 },
+      { type: "mc", prompt: "What does Chicken mean?", options: ["دجاج", "جبن", "كعكة", "ذرة"], answer: 0 },
+      { type: "mc", prompt: "Which word means طبيب؟", options: ["Doctor", "Doll", "Desk", "Door"], answer: 0 }
+    ];
+
+    const alphabet = ["A", "B", "C", "D"];
+    const answersState = Array(questions.length).fill(null);
+    const eliminated = new Map();
+    const usedLifelines = new Set();
+    let currentIndex = 0;
+    let score = 0;
+    let isFinished = false;
+
+    const questionText = document.getElementById("questionText");
+    const answersContainer = document.getElementById("answers");
+    const feedback = document.getElementById("feedback");
+    const jumpSelect = document.getElementById("jumpSelect");
+    const resultPanel = document.getElementById("resultPanel");
+    const progressTrack = document.querySelector(".progress-track");
+
+    questions.forEach(function (_, index) {
+      const option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = "السؤال " + (index + 1);
+      jumpSelect.appendChild(option);
+    });
+
+    function render() {
+      const question = questions[currentIndex];
+      const state = answersState[currentIndex];
+      document.getElementById("questionNumber").textContent = "السؤال " + (currentIndex + 1);
+      document.getElementById("questionType").textContent = question.type === "tf" ? "صح أم خطأ" : "اختيار من متعدد";
+      questionText.textContent = question.prompt;
+      questionText.dir = question.prompt.includes("The English alphabet") ? "ltr" : "auto";
+      document.getElementById("progressText").textContent = "السؤال " + (currentIndex + 1) + " من " + questions.length;
+      document.getElementById("scoreText").textContent = "النتيجة: " + score;
+      const answeredCount = answersState.filter(function (answer) { return answer !== null; }).length;
+      document.getElementById("answeredText").textContent = "تمت الإجابة: " + answeredCount;
+      const progress = Math.round((answeredCount / questions.length) * 100);
+      document.getElementById("progressFill").style.width = progress + "%";
+      progressTrack.setAttribute("aria-valuenow", String(progress));
+      jumpSelect.value = String(currentIndex);
+      document.getElementById("previousButton").disabled = currentIndex === 0;
+      document.getElementById("nextButton").textContent = currentIndex === questions.length - 1 ? "إنهاء الاختبار" : "التالي";
+      resultPanel.hidden = !isFinished;
+      document.getElementById("questionPanel").hidden = isFinished;
+
+      answersContainer.replaceChildren();
+      const removed = eliminated.get(currentIndex) || new Set();
+      question.options.forEach(function (optionText, optionIndex) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "answer";
+        button.disabled = state !== null;
+        if (removed.has(optionIndex)) button.classList.add("is-eliminated");
+        if (state !== null) {
+          if (optionIndex === question.answer) button.classList.add("is-correct");
+          else if (optionIndex === state.selected) button.classList.add("is-wrong");
+        }
+        const letter = document.createElement("span");
+        letter.className = "answer-letter";
+        letter.textContent = question.type === "tf" ? (optionIndex === 0 ? "✓" : "✗") : alphabet[optionIndex];
+        const text = document.createElement("span");
+        text.textContent = optionText;
+        button.append(letter, text);
+        button.addEventListener("click", function () { selectAnswer(optionIndex); });
+        answersContainer.appendChild(button);
+      });
+
+      feedback.className = "feedback";
+      if (state !== null) {
+        const correct = state.selected === question.answer;
+        feedback.textContent = correct ? "إجابة صحيحة ✓" : "إجابة غير صحيحة. الإجابة الصحيحة: " + question.options[question.answer];
+        feedback.classList.add(correct ? "correct" : "incorrect");
+      } else {
+        feedback.textContent = "";
+      }
+
+      document.querySelectorAll(".lifeline").forEach(function (button) {
+        const key = button.dataset.lifeline;
+        button.classList.toggle("used", usedLifelines.has(key));
+        button.disabled = usedLifelines.has(key) || (key === "fifty" && (question.type !== "mc" || state !== null));
+      });
+    }
+
+    function selectAnswer(selected) {
+      if (answersState[currentIndex] !== null) return;
+      const question = questions[currentIndex];
+      const correct = selected === question.answer;
+      answersState[currentIndex] = { selected: selected };
+      if (correct) score += 1;
+      render();
+    }
+
+    document.querySelectorAll(".lifeline").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const key = button.dataset.lifeline;
+        if (usedLifelines.has(key)) return;
+        if (key === "fifty") {
+          const question = questions[currentIndex];
+          if (question.type !== "mc" || answersState[currentIndex] !== null) return;
+          const wrongOptions = question.options
+            .map(function (_, index) { return index; })
+            .filter(function (index) { return index !== question.answer; });
+          for (let i = wrongOptions.length - 1; i > 0; i -= 1) {
+            const randomIndex = Math.floor(Math.random() * (i + 1));
+            [wrongOptions[i], wrongOptions[randomIndex]] = [wrongOptions[randomIndex], wrongOptions[i]];
+          }
+          eliminated.set(currentIndex, new Set(wrongOptions.slice(0, 2)));
+        }
+        usedLifelines.add(key);
+        render();
+      });
+    });
+
+    document.getElementById("previousButton").addEventListener("click", function () {
+      if (currentIndex > 0) {
+        isFinished = false;
+        currentIndex -= 1;
+        render();
+      }
+    });
+
+    document.getElementById("nextButton").addEventListener("click", function () {
+      if (isFinished) {
+        isFinished = false;
+        render();
+        return;
+      }
+      if (currentIndex < questions.length - 1) {
+        currentIndex += 1;
+        render();
+        return;
+      }
+      if (answersState.every(function (answer) { return answer !== null; })) {
+        isFinished = true;
+        document.getElementById("finalScore").textContent = score + " من " + questions.length;
+        render();
+      } else {
+        const firstUnanswered = answersState.findIndex(function (answer) { return answer === null; });
+        currentIndex = firstUnanswered;
+        render();
+        feedback.textContent = "أجب عن جميع الأسئلة قبل إنهاء الاختبار.";
+        feedback.classList.add("incorrect");
+      }
+    });
+
+    document.getElementById("jumpForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+      isFinished = false;
+      currentIndex = Number(jumpSelect.value);
+      render();
+    });
+
+    render();
+  </script>
 </body>
-</html>
+  </html> 
